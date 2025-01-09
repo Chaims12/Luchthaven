@@ -1,0 +1,141 @@
+import json
+
+# Class definitions
+class Passenger:
+    def __init__(self, name, passport_number):
+        self.name = name
+        self.passport_number = passport_number
+
+class Flight:
+    def __init__(self, flight_code, destination, economy_seats, business_seats):
+        self.flight_code = flight_code
+        self.destination = destination
+        self.economy_seats = economy_seats
+        self.business_seats = business_seats
+        self.passengers = []
+        self.staff = []
+
+    def available_seats(self, seat_class):
+        if seat_class == "economy":
+            return self.economy_seats - sum(1 for ticket in self.passengers if ticket["class"] == "economy")
+        elif seat_class == "business":
+            return self.business_seats - sum(1 for ticket in self.passengers if ticket["class"] == "business")
+
+    def add_passenger(self, passenger, seat_class):
+        if self.available_seats(seat_class) > 0:
+            self.passengers.append({"passenger": passenger, "class": seat_class})
+            print(f"Passenger {passenger.name} added to flight {self.flight_code} in {seat_class} class.")
+        else:
+            print(f"No available seats in {seat_class} class on flight {self.flight_code}.")
+
+    def add_staff(self, staff_name):
+        self.staff.append(staff_name)
+        print(f"Staff {staff_name} added to flight {self.flight_code}.")
+
+    def print_info(self):
+        filename = f"flight_{self.flight_code}_info.json"
+        data = {
+            "flight_code": self.flight_code,
+            "destination": self.destination,
+            "passengers": [{"name": p["passenger"].name, "passport_number": p["passenger"].passport_number, "class": p["class"]} for p in self.passengers],
+            "staff": self.staff
+        }
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=4)
+        print(f"Flight info saved to {filename}.")
+
+# Main application
+passengers = []
+flights = []
+
+def create_passenger():
+    name = input("Enter passenger name: ")
+    passport_number = input("Enter passport number: ")
+    passenger = Passenger(name, passport_number)
+    passengers.append(passenger)
+    print(f"Passenger {name} created.")
+
+def create_flight():
+    flight_code = input("Enter flight code: ")
+    destination = input("Enter destination: ")
+    economy_seats = int(input("Enter number of economy seats: "))
+    business_seats = int(input("Enter number of business seats: "))
+    flight = Flight(flight_code, destination, economy_seats, business_seats)
+    flights.append(flight)
+    print(f"Flight {flight_code} created.")
+
+def create_ticket():
+    passport_number = input("Enter passenger passport number: ")
+    seat_class = input("Enter seat class (economy/business): ").lower()
+    flight_code = input("Enter flight code: ")
+
+    passenger = next((p for p in passengers if p.passport_number == passport_number), None)
+    flight = next((f for f in flights if f.flight_code == flight_code), None)
+
+    if passenger and flight:
+        flight.add_passenger(passenger, seat_class)
+    else:
+        print("Passenger or flight not found.")
+
+def assign_staff():
+    staff_name = input("Enter staff name: ")
+    flight_code = input("Enter flight code: ")
+    flight = next((f for f in flights if f.flight_code == flight_code), None)
+    if flight:
+        flight.add_staff(staff_name)
+    else:
+        print("Flight not found.")
+
+def board_passenger():
+    passport_number = input("Enter passenger passport number: ")
+    flight_code = input("Enter flight code: ")
+
+    passenger = next((p for p in passengers if p.passport_number == passport_number), None)
+    flight = next((f for f in flights if f.flight_code == flight_code), None)
+
+    if passenger and flight:
+        flight.add_passenger(passenger, "economy")
+    else:
+        print("Passenger or flight not found.")
+
+def print_flight_info():
+    flight_code = input("Enter flight code: ")
+    flight = next((f for f in flights if f.flight_code == flight_code), None)
+    if flight:
+        flight.print_info()
+    else:
+        print("Flight not found.")
+
+def main():
+    while True:
+        print("\nMenu:")
+        print("1. Create new passenger")
+        print("2. Create new flight")
+        print("3. Create ticket")
+        print("4. Board passenger")
+        print("5. Assign staff")
+        print("6. Print flight info")
+        print("7. Exit")
+        
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            create_passenger()
+        elif choice == "2":
+            create_flight()
+        elif choice == "3":
+            create_ticket()
+        elif choice == "4":
+            board_passenger()
+        elif choice == "5":
+            assign_staff()
+        elif choice == "6":
+            print_flight_info()
+        elif choice == "7":
+            print("Exiting application.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
